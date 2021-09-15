@@ -26,6 +26,7 @@ namespace TestAzureFunction
             //string name = formdata["name"];
             //string[] interests = JsonConvert.DeserializeObject<string[]>( formdata["interests"]);
 
+            
             log.LogInformation(req.Form.Files.Count.ToString());
             //Console.WriteLine(req.Form.Files.Count);
             if (req.Form.Files.Count > 0)
