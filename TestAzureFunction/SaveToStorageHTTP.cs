@@ -42,7 +42,7 @@ namespace TestAzureFunction
                 {
                     var file = req.Form.Files[i];
                     
-                    Console.WriteLine(file.FileName);
+                    //Console.WriteLine(file.FileName);
             
                     CloudBlockBlob blob = container.GetBlockBlobReference(file.FileName);
                     blob.Properties.ContentType = file.ContentType;
