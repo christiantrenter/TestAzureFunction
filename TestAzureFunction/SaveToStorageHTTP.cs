@@ -28,27 +28,32 @@ namespace TestAzureFunction
 
             
             log.LogInformation(req.Form.Files.Count.ToString());
-            //Console.WriteLine(req.Form.Files.Count);
+            
             if (req.Form.Files.Count > 0)
             {
-                var file = req.Form.Files[0];
-                CreateContainerIfNotExists(context);  
-  
+
                 CloudStorageAccount storageAccount = GetCloudStorageAccount(context);
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();  
                 CloudBlobContainer container = blobClient.GetContainerReference("test-container");
-
-                Console.WriteLine(file.FileName);
-                //Console.WriteLine(name);
-            
-                CloudBlockBlob blob = container.GetBlockBlobReference(file.FileName);
-                blob.Properties.ContentType = file.ContentType;
-            
-                await blob.UploadFromStreamAsync(file.OpenReadStream()); 
+                CreateContainerIfNotExists(context);
+                
+                
+                for (int i = 0; i < req.Form.Files.Count; i++)
+                {
+                    var file = req.Form.Files[i];
                     
-                log.LogInformation($"Blob {file.FileName} is uploaded to container {container.Name}");  
-                await blob.SetPropertiesAsync();
-                return new OkObjectResult($"File added successfully to storage. File name: {file.FileName}");
+                    Console.WriteLine(file.FileName);
+            
+                    CloudBlockBlob blob = container.GetBlockBlobReference(file.FileName);
+                    blob.Properties.ContentType = file.ContentType;
+            
+                    await blob.UploadFromStreamAsync(file.OpenReadStream()); 
+                    
+                    log.LogInformation($"Blob {file.FileName} is uploaded to container {container.Name}");  
+                    await blob.SetPropertiesAsync();
+                }
+                
+                return new OkObjectResult($"File(s) added successfully to storage.");
             }
            
             return new BadRequestObjectResult("No file added.");
