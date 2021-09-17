@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -11,37 +9,42 @@ namespace TestAzureFunction.Services
 {
     public class StorageService : IStorageService
     {
+        private CloudBlockBlob _blob;
+        private CloudStorageAccount _storageAccount;
+        private CloudBlobClient _blobClient;
+        private readonly CloudBlobContainer _container;
+        
+        public StorageService()
+        {
+            _storageAccount = GetCloudStorageAccount();
+            _blobClient = _storageAccount.CreateCloudBlobClient();  
+            _container = _blobClient.GetContainerReference("test-container");
+            CreateContainerIfNotExists();
+        }
+        
         public async Task ConfigureStorageAndUploadFiles(IFormFileCollection fileCollection)
         {
-            CloudStorageAccount storageAccount = GetCloudStorageAccount();
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();  
-            CloudBlobContainer container = blobClient.GetContainerReference("test-container");
-            CreateContainerIfNotExists();
-                
-                
-            for (int i = 0; i < fileCollection.Count; i++)
+            for (var i = 0; i < fileCollection.Count; i++)
             {
                 var file = fileCollection[i];
-                    
-                //Console.WriteLine(file.FileName);
-            
-                CloudBlockBlob blob = container.GetBlockBlobReference(file.FileName);
-                blob.Properties.ContentType = file.ContentType;
-            
-                await blob.UploadFromStreamAsync(file.OpenReadStream()); 
                 
-                await blob.SetPropertiesAsync();
+                _blob = _container.GetBlockBlobReference(file.FileName);
+                _blob.Properties.ContentType = file.ContentType;
+            
+                await _blob.UploadFromStreamAsync(file.OpenReadStream()); 
+                
+                await _blob.SetPropertiesAsync();
             }
         }
         
-        private static void CreateContainerIfNotExists()  
+        private void CreateContainerIfNotExists()  
         {  
-            CloudStorageAccount storageAccount = GetCloudStorageAccount();  
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();  
-            string[] containers = new string[] { "test-container" };  
+            _storageAccount = GetCloudStorageAccount();  
+            _blobClient = _storageAccount.CreateCloudBlobClient();  
+            var containers = new string[] { "test-container" };  
             foreach (var item in containers)  
             {  
-                CloudBlobContainer blobContainer = blobClient.GetContainerReference(item);  
+                CloudBlobContainer blobContainer = _blobClient.GetContainerReference(item);  
                 blobContainer.CreateIfNotExistsAsync();  
             }  
         }  
