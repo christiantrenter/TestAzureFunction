@@ -30,11 +30,7 @@ namespace TestAzureFunction
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "upload/file")] HttpRequest req,
             ILogger log, ExecutionContext context)
         {
-            if (req.Form.Files.Count <= 0) return new BadRequestObjectResult("No file added.");
-            await _storageService.ConfigureStorageAndUploadFiles(req.Form.Files);
-               
-            return new OkObjectResult($"File(s) added successfully to storage.");
-
+            return await _storageService.UploadFile(req.Form.Files);
         }
     }
 }
